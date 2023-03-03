@@ -3,9 +3,8 @@ package kamino_benchmark
 import (
 	"testing"
 
-	libdc1 "github.com/barkimedes/go-deepcopy"
-	libdc3 "github.com/jinzhu/copier"
-	libdc2 "github.com/mohae/deepcopy"
+	barkimedes "github.com/barkimedes/go-deepcopy"
+	mohae "github.com/mohae/deepcopy"
 
 	"github.com/LastPossum/kamino"
 )
@@ -75,22 +74,15 @@ var (
 	}
 )
 
-func BenchmarkCloneLibDC1ComplexStruct(b *testing.B) {
+func BenchmarkCloneBarkimedesComplexStruct(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		libdc1.Anything(complexStructForBenchInstance)
+		barkimedes.Anything(complexStructForBenchInstance)
 	}
 }
 
-func BenchmarkCloneLibDC2ComplexStruct(b *testing.B) {
+func BenchmarkCloneMohaeComplexStruct(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		libdc2.Copy(complexStructForBenchInstance)
-	}
-}
-
-func BenchmarkCloneLibDC3ComplexStruct(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		var res complexStructForBench
-		libdc3.CopyWithOption(&res, &complexStructForBenchInstance, libdc3.Option{IgnoreEmpty: true, DeepCopy: true})
+		mohae.Copy(complexStructForBenchInstance)
 	}
 }
 
@@ -100,7 +92,7 @@ func BenchmarkCloneJsonComplexStruct(b *testing.B) {
 	}
 }
 
-func BenchmarkCloneComplexStruct(b *testing.B) {
+func BenchmarkCloneKaminoComplexStruct(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		kamino.Clone(complexStructForBenchInstance)
 	}

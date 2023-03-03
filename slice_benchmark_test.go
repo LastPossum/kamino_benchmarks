@@ -1,58 +1,54 @@
 package kamino_benchmark
 
 import (
+	"fmt"
 	"testing"
 
-	libdc1 "github.com/barkimedes/go-deepcopy"
-	libdc3 "github.com/jinzhu/copier"
-	libdc2 "github.com/mohae/deepcopy"
+	barkimedes "github.com/barkimedes/go-deepcopy"
+	mohae "github.com/mohae/deepcopy"
 
 	"github.com/LastPossum/kamino"
 )
 
-const bytes = 1024
-
-var bigByteSlice = make([]byte, bytes)
-
-func plainCopyByteSlice(src []byte) []byte {
-	r := make([]byte, len(src))
-	copy(r, src)
-	return r
+func mkByteSlice(l int) []byte {
+	res := make([]byte, l)
+	res[0] = 'b'
+	return res
 }
 
-func BenchmarkPlainCopySlice(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		plainCopyByteSlice(bigByteSlice)
-	}
-}
+func BenchmarkBytesSlice(b *testing.B) {
+	for i := 5; i < 10; i++ {
+		k := 1 << i
+		bytes := mkByteSlice(k)
 
-func BenchmarkCloneLibDC1Slice(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		libdc1.Anything(bigByteSlice)
-	}
-}
+		b.Run(fmt.Sprintf("barkimedes for %d bytes slice", k), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				barkimedes.Anything(bytes)
+			}
+		})
 
-func BenchmarkCloneLibDC2Slice(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		libdc2.Copy(bigByteSlice)
-	}
-}
+		b.Run(fmt.Sprintf("mohae for %d bytes slice", k), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				mohae.Copy(bytes)
+			}
+		})
 
-func BenchmarkCloneLibDC3Slice(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		var res []byte
-		libdc3.CopyWithOption(&res, &bigByteSlice, libdc3.Option{IgnoreEmpty: true, DeepCopy: true})
-	}
-}
+		b.Run(fmt.Sprintf("json for %d bytes slice", k), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				cloneJSON(bytes)
+			}
+		})
 
-func BenchmarkCloneJsonSlice(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		cloneJSON(bigByteSlice)
-	}
-}
+		b.Run(fmt.Sprintf("msgpack for %d bytes slice", k), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				cloneMsgPack(bytes)
+			}
+		})
 
-func BenchmarkCloneSlice(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		kamino.Clone(bigByteSlice)
+		b.Run(fmt.Sprintf("kamino for %d bytes slice", k), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				kamino.Clone(bytes)
+			}
+		})
 	}
 }

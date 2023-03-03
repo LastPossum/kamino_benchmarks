@@ -4,18 +4,10 @@ import (
 	"testing"
 
 	"github.com/LastPossum/kamino"
-	libdc1 "github.com/barkimedes/go-deepcopy"
-	libdc3 "github.com/jinzhu/copier"
-	libdc2 "github.com/mohae/deepcopy"
+	barkimedes "github.com/barkimedes/go-deepcopy"
+	jinzhu "github.com/jinzhu/copier"
+	mohae "github.com/mohae/deepcopy"
 )
-
-type benchSimpleStruct5 struct {
-	A int
-	B float64
-	C string
-	D byte
-	E complex64
-}
 
 var benchSimpleStruct5Instance = benchSimpleStruct5{1, 2, "3", 4, 5i}
 
@@ -30,28 +22,34 @@ func BenchmarkPlainCopySimpleStruct5(b *testing.B) {
 	}
 }
 
-func BenchmarkCloneLibDC1SimpleStruct5(b *testing.B) {
+func BenchmarkCloneBarkimedesSimpleStruct5(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		libdc1.Anything(benchSimpleStruct5Instance)
+		barkimedes.Anything(benchSimpleStruct5Instance)
 	}
 }
 
-func BenchmarkCloneLibDC2SimpleStruct5(b *testing.B) {
+func BenchmarkCloneMohaeSimpleStruct5(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		libdc2.Copy(benchSimpleStruct5Instance)
+		mohae.Copy(benchSimpleStruct5Instance)
 	}
 }
 
-func BenchmarkCloneLibDC3SimpleStruct5(b *testing.B) {
+func BenchmarkCloneJinzhuSimpleStruct5(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var res benchSimpleStruct5
-		libdc3.CopyWithOption(&res, &benchSimpleStruct5Instance, libdc3.Option{IgnoreEmpty: true, DeepCopy: true})
+		jinzhu.CopyWithOption(&res, &benchSimpleStruct5Instance, jinzhu.Option{IgnoreEmpty: true, DeepCopy: true})
 	}
 }
 
 func BenchmarkCloneJsonSimpleStruct5(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		cloneJSON(benchSimpleStruct5Instance)
+	}
+}
+
+func BenchmarkCloneMsgPackSimpleStruct5(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		cloneMsgPack(benchSimpleStruct5Instance)
 	}
 }
 

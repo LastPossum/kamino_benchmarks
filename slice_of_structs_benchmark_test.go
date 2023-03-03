@@ -1,17 +1,16 @@
 package kamino_benchmark
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
-	libdc1 "github.com/barkimedes/go-deepcopy"
-	libdc3 "github.com/jinzhu/copier"
-	libdc2 "github.com/mohae/deepcopy"
+	barkimedes "github.com/barkimedes/go-deepcopy"
+	mohae "github.com/mohae/deepcopy"
 
 	"github.com/LastPossum/kamino"
 )
-
-const lenStructSlice = 1024
 
 type simpleStruct struct {
 	Int     int
@@ -19,9 +18,7 @@ type simpleStruct struct {
 	String  string
 }
 
-var bigStructSlice = genSliceOfStruct()
-
-func genSliceOfStruct() []simpleStruct {
+func genSliceOfStruct(lenStructSlice int) []simpleStruct {
 	bigStructSlice := make([]simpleStruct, lenStructSlice)
 	for i := 0; i < lenStructSlice; i++ {
 		bigStructSlice[i].Int = i
@@ -31,33 +28,55 @@ func genSliceOfStruct() []simpleStruct {
 	return bigStructSlice
 }
 
-func BenchmarkCloneLibDC1SliceOfStruct(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		libdc1.Anything(bigStructSlice)
+func BenchmarkStructsSlice(b *testing.B) {
+	for i := 5; i < 10; i++ {
+		k := 1 << i
+		structs := genSliceOfStruct(k)
+
+		b.Run(fmt.Sprintf("barkimedes for %d structs slice", k), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				barkimedes.Anything(structs)
+			}
+		})
+
+		b.Run(fmt.Sprintf("mohae for %d structs slice", k), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				mohae.Copy(structs)
+			}
+		})
+
+		b.Run(fmt.Sprintf("json for %d structs slice", k), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				cloneJSON(structs)
+			}
+		})
+
+		b.Run(fmt.Sprintf("msgpack for %d structs slice", k), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				cloneMsgPack(structs)
+			}
+		})
+
+		b.Run(fmt.Sprintf("kamino for %d structs slice", k), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				kamino.Clone(structs)
+			}
+		})
 	}
 }
 
-func BenchmarkCloneLibDC2SliceOfStruct(b *testing.B) {
+func BenchmarkKaminoTime(b *testing.B) {
+	l, _ := time.LoadLocation("Europe/Moscow")
+	t := time.Now().In(l)
 	for i := 0; i < b.N; i++ {
-		libdc2.Copy(bigStructSlice)
+		kamino.Clone(t)
 	}
 }
 
-func BenchmarkCloneLibDC3SliceOfStruct(b *testing.B) {
+func BenchmarkKaminoFullTime(b *testing.B) {
+	l, _ := time.LoadLocation("Europe/Moscow")
+	t := time.Now().In(l)
 	for i := 0; i < b.N; i++ {
-		var res []benchSimpleStruct5
-		libdc3.CopyWithOption(&res, &bigStructSlice, libdc3.Option{IgnoreEmpty: true, DeepCopy: true})
-	}
-}
-
-func BenchmarkCloneJsonSliceOfStruct(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		cloneJSON(bigStructSlice)
-	}
-}
-
-func BenchmarkCloneSliceOfStruct(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		kamino.Clone(bigStructSlice)
+		kamino.Clone(t, kamino.WithForceUnexported())
 	}
 }
